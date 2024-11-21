@@ -1,0 +1,34 @@
+{
+  "name": "redact",
+  "version": "1.0.0",
+  "description": "Redacts query results",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "watch": "gulp watch",
+    "build": "gulp build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+<REPOSITORY PLUGIN>"
+  },
+  "keywords": [
+    "editing",
+    "plugin"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "<REPOSITORY PLUGIN>issues"
+  },
+  "homepage": "<REPOSITORY PLUGIN>#readme",
+  "browserslist": "defaults",
+  "engines" : {
+    "node" : ">=16.13.2",
+    "npm": ">=8.1.2"
+  }
+}
