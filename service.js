@@ -1,4 +1,3 @@
-// const { AuthProviders, TDF3Client } = require('@opentdf/sdk'); // FIXME: Errors on import
 const { base, inherit } = g3wsdk.core.utils;
 const { PluginService } = g3wsdk.core.plugin;
 const { GUI } = g3wsdk.gui;
@@ -57,14 +56,23 @@ function Service() {
               if (feature.values_.hasOwnProperty(key) && !valuesNotToEncode.includes(key)) {
                 if (key == 'name') {
                   try {
-                    const binaryData = atob(feature.values_[key]);
+                    var binaryData;
+                    
+                    try {
+                      binaryData = atob(feature.values_[key]);
+                    } catch (e) {
+                      if (e instanceof DOMException && e.name === 'InvalidCharacterError') {
+                        continue;
+                      }
+                      console.error('Error decoding base64 string:', e);
+                    }
 
                     const magicNumber = binaryData.slice(0, 4);
                     if (magicNumber == 'PK\x03\x04') {
                       // It's likely a ZIP file here
                       console.log('ZIP file detected: ', feature.values_[key]);
 
-                      var cleartext = 'FAILED TO DECRYPT TDF';
+                      var cleartext = 'ENCRYPTED DATA';
                       try {
                         // Decrypt the ZIP file
                         cleartext = decrypt(feature.values_[key]);
@@ -73,11 +81,10 @@ function Service() {
                         console.error('Error decrypting ZIP file:', e);
                       }
 
-                      // display cleartext
+                      // Display cleartext
                       feature.values_[key] = cleartext;
                     }
                   } catch (e) {
-                    // TODO: check if error is due to decryption
                     console.error('Error decrypting data:', e);
                   }
                 }
