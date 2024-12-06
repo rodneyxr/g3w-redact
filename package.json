@@ -6,8 +6,9 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
-  "devDependencies": {},
+  "dependencies": {
+    "@opentdf/sdk": "^0.1.0-beta.1701"
+  },
   "scripts": {
     "watch": "gulp watch",
     "build": "gulp build"
@@ -27,8 +28,8 @@
   },
   "homepage": "<REPOSITORY PLUGIN>#readme",
   "browserslist": "defaults",
-  "engines" : {
-    "node" : ">=16.13.2",
+  "engines": {
+    "node": ">=16.13.2",
     "npm": ">=8.1.2"
   }
 }

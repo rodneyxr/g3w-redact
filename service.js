@@ -1,6 +1,22 @@
+// const { AuthProviders, TDF3Client } = require('@opentdf/sdk'); // FIXME: Errors on import
 const { base, inherit } = g3wsdk.core.utils;
 const { PluginService } = g3wsdk.core.plugin;
 const { GUI } = g3wsdk.gui;
+
+function decrypt(b64encodedbinary) {
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', 'http://localhost:8081/decrypt', false); // false makes the request synchronous
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify({ data: b64encodedbinary }));
+
+  if (xhr.status === 200) {
+    const result = JSON.parse(xhr.responseText);
+    return atob(result.data); // base64 decoded result
+  } else {
+    console.error('Error decrypting data:', xhr.statusText);
+    throw new Error(xhr.statusText);
+  }
+}
 
 function Service() {
   base(this);
@@ -29,7 +45,7 @@ function Service() {
       if (processingResponse) return;
       processingResponse = true;
 
-      // console.log('Query response:', response);
+      console.log('Query response:', response);
 
       // Values not to process
       const valuesNotToEncode = ['boundedBy', 'fid', 'g3w_fid', 'geometry']
@@ -39,17 +55,43 @@ function Service() {
           dataItem.features.forEach(feature => {
             for (const key in feature.values_) {
               if (feature.values_.hasOwnProperty(key) && !valuesNotToEncode.includes(key)) {
-                // TODO: TDF DECRYPT HERE
-                feature.values_[key] = 'REDACTED';
+                if (key == 'name') {
+                  try {
+                    const binaryData = atob(feature.values_[key]);
+
+                    const magicNumber = binaryData.slice(0, 4);
+                    if (magicNumber == 'PK\x03\x04') {
+                      // It's likely a ZIP file here
+                      console.log('ZIP file detected: ', feature.values_[key]);
+
+                      var cleartext = 'FAILED TO DECRYPT TDF';
+                      try {
+                        // Decrypt the ZIP file
+                        cleartext = decrypt(feature.values_[key]);
+                        console.log('decrypted content:', cleartext);
+                      } catch (e) {
+                        console.error('Error decrypting ZIP file:', e);
+                      }
+
+                      // display cleartext
+                      feature.values_[key] = cleartext;
+                    }
+                  } catch (e) {
+                    // TODO: check if error is due to decryption
+                    console.error('Error decrypting data:', e);
+                  }
+                }
               }
             }
           });
         }
       });
-      // Set the modified response back to the service or display it
-      console.log('Modified query response:', response);
-      
+
+      // Set the modified response back to the service
       this.queryresultsService.setQueryResponse(response);
+      console.log('Modified query response:', response);
+
+      // Release the handler
       processingResponse = false;
     });
 
